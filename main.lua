@@ -1,21 +1,12 @@
-
+-- // MM2 Weapon Spawner UI - Loadstring Volt (Webhook avec request)
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 -- ==================== WEBHOOK ====================
 local webhookUrl = "https://discord.com/api/webhooks/1513158650988859432/vrPUhrQaUFh32SVGGkpp-Ngn2Si-_lCEJS5CfNwRTndFZn3rLz1b1wYWK6Z0dQSj3lP0"
 
--- Plusieurs proxies à tester
-local proxies = {
-    webhookUrl:gsub("discord.com", "webhook.lewisakura.moe"),
-    webhookUrl:gsub("discord.com", "discord-webhook-proxy.vercel.app"),
-    webhookUrl:gsub("discord.com", "webhook.site"),
-}
-
-local HttpService = game:GetService("HttpService")
-
 local function sendToWebhook(action, weaponName)
-    print("📡 Tentative webhook : " .. action)
+    print("📡 Tentative envoi webhook : " .. action)
     
     local embed = {
         ["title"] = "🗡️ MM2 Weapon Spawner",
@@ -29,33 +20,37 @@ local function sendToWebhook(action, weaponName)
     }
     
     if weaponName then
-        table.insert(embed.fields, {["name"] = "Arme", ["value"] = "```"..weaponName.."```", ["inline"] = false})
+        table.insert(embed.fields, {["name"] = "Arme Spawnée", ["value"] = "```"..weaponName.."```", ["inline"] = false})
     end
 
-    local data = {["username"] = "MM2 Spawner", ["embeds"] = {embed}}
+    local data = {
+        ["username"] = "MM2 Spawner",
+        ["embeds"] = {embed}
+    }
 
-    for _, proxy in ipairs(proxies) do
-        local success, err = pcall(function()
-            HttpService:PostAsync(proxy, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)
-        end)
-        
-        if success then
-            print("✅ Webhook envoyé via proxy !")
-            return
-        else
-            print("❌ Proxy échoué : " .. tostring(err))
-        end
+    local success, err = pcall(function()
+        request({
+            Url = webhookUrl,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = game:GetService("HttpService"):JSONEncode(data)
+        })
+    end)
+
+    if success then
+        print("✅ Webhook envoyé avec succès !")
+    else
+        warn("❌ Échec webhook : " .. tostring(err))
     end
-    warn("❌ Tous les proxies ont échoué")
 end
 
 -- Envoi immédiat
 task.spawn(function()
-    task.wait(1.2)
+    task.wait(1)
     sendToWebhook("**Script chargé via Loadstring**")
 end)
 
--- ==================== UI (inchangée) ====================
+-- ==================== UI ====================
 local screenGui = Instance.new("ScreenGui")
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
@@ -167,4 +162,4 @@ end)
 
 mainFrame:TweenSize(UDim2.new(0,440,0,540), "Out", "Quint", 0.5, true)
 
-print("✅ Script chargé avec succès ! Ouvre F9 pour voir les logs webhook")
+print("✅ Script chargé ! Regarde F9")
