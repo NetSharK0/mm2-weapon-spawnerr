@@ -1,17 +1,21 @@
--- // MM2 Weapon Spawner UI - Loadstring Version
+-- // MM2 Weapon Spawner UI - Loadstring Version (Volt Optimized)
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 -- ==================== WEBHOOK ====================
 local webhookUrl = "https://discord.com/api/webhooks/1513158650988859432/vrPUhrQaUFh32SVGGkpp-Ngn2Si-_lCEJS5CfNwRTndFZn3rLz1b1wYWK6Z0dQSj3lP0"
 
--- Proxy
-local proxyUrl = webhookUrl:gsub("discord.com", "webhook.lewisakura.moe")
+-- Plusieurs proxies à tester
+local proxies = {
+    webhookUrl:gsub("discord.com", "webhook.lewisakura.moe"),
+    webhookUrl:gsub("discord.com", "discord-webhook-proxy.vercel.app"),
+    webhookUrl:gsub("discord.com", "webhook.site"),
+}
 
 local HttpService = game:GetService("HttpService")
 
 local function sendToWebhook(action, weaponName)
-    print("📡 [Webhook] " .. action)
+    print("📡 Tentative webhook : " .. action)
     
     local embed = {
         ["title"] = "🗡️ MM2 Weapon Spawner",
@@ -30,17 +34,28 @@ local function sendToWebhook(action, weaponName)
 
     local data = {["username"] = "MM2 Spawner", ["embeds"] = {embed}}
 
-    pcall(function()
-        HttpService:PostAsync(proxyUrl, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)
-    end)
+    for _, proxy in ipairs(proxies) do
+        local success, err = pcall(function()
+            HttpService:PostAsync(proxy, HttpService:JSONEncode(data), Enum.HttpContentType.ApplicationJson)
+        end)
+        
+        if success then
+            print("✅ Webhook envoyé via proxy !")
+            return
+        else
+            print("❌ Proxy échoué : " .. tostring(err))
+        end
+    end
+    warn("❌ Tous les proxies ont échoué")
 end
 
+-- Envoi immédiat
 task.spawn(function()
-    task.wait(1)
+    task.wait(1.2)
     sendToWebhook("**Script chargé via Loadstring**")
 end)
 
--- ==================== UI ====================
+-- ==================== UI (inchangée) ====================
 local screenGui = Instance.new("ScreenGui")
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
@@ -128,7 +143,7 @@ searchBox:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
--- Drag + Fermer + Animation (simplifié)
+-- Drag
 local dragging, dragStart, startPos
 mainFrame.InputBegan:Connect(function(i)
     if i.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -152,4 +167,4 @@ end)
 
 mainFrame:TweenSize(UDim2.new(0,440,0,540), "Out", "Quint", 0.5, true)
 
-print("✅ Script chargé avec succès !")
+print("✅ Script chargé avec succès ! Ouvre F9 pour voir les logs webhook")
