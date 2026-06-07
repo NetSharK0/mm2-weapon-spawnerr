@@ -1,4 +1,4 @@
--- // MM2 Weapon Spawner UI - Loadstring Version (Volt Optimized)
+
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
